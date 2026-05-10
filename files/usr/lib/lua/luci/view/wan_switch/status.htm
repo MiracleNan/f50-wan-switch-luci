@@ -171,9 +171,16 @@
 			autoBtn.onclick = function() { return switchWan('auto'); };
 	}
 
-	bindButtons();
-	refreshStatus();
-	window.setInterval(refreshStatus, 5000);
+	function initWanSwitch() {
+		bindButtons();
+		refreshStatus();
+		window.setInterval(refreshStatus, 5000);
+	}
+
+	if (document.readyState === 'loading')
+		document.addEventListener('DOMContentLoaded', initWanSwitch);
+	else
+		initWanSwitch();
 //]]></script>
 
 <div id="wan-switch-dashboard" class="wan-switch-dashboard wan-switch-info">
