@@ -9,3 +9,4 @@
 - Add configurable switch times and holiday fallback cache metadata.
 - Improve LuCI status wording for prepared/fallback WAN states and captive-portal failures.
 - Improve installer dependency hints and repository validation checks.
+- Replace the old LuCI status template with a JavaScript network assurance console and read-only diagnostics page.

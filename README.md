@@ -15,7 +15,7 @@ This repository is sanitized. It does not include router passwords, captive-port
 项目包含：
 
 - `/root/f50-wan-switch.sh`：核心切换脚本。
-- LuCI 页面：在网页端查看当前状态并手动切换。
+- LuCI 网络保障控制台：在网页端查看当前风险、实际出口、策略时间轴并手动切换。
 - `mwan3` 示例配置：用策略路由切换流量，不直接改 `network.wan.device`。
 - 节假日/调休判断：可用于“工作日前一晚断网”这类规则。
 - 可选的门户认证登录：切回主 WAN 前先登录并验证主 WAN 真能出公网。
@@ -28,12 +28,16 @@ This repository is sanitized. It does not include router passwords, captive-port
   - 主 WAN
   - F50
   - 自动判断
-- LuCI 页面显示：
+- LuCI 控制台显示：
+  - 当前是否安全
   - 当前实际出口
+  - 当前策略与推荐操作
   - 主 WAN 和 F50 是否在线
+  - 校园 WAN → mwan3 策略 → F50 的网络路径
   - 今晚是否预计断网
   - 当前是否已经处于 F50 保护状态
   - 下一次自动动作
+  - 只读诊断页
 - 自动判断中国节假日和调休；接口不可用时退回周一到周五规则。
 - 如果主 WAN 需要网页登录认证，可以配置登录 URL。脚本会强制从主 WAN 接口发起登录，并确认连通后才切回。
 
@@ -51,6 +55,9 @@ files/etc/init.d/f50-wan-switch
 files/usr/lib/lua/luci/controller/wan_switch.lua
 files/usr/lib/lua/luci/model/cbi/wan_switch.lua
 files/usr/lib/lua/luci/view/wan_switch/status.htm
+files/usr/share/luci/menu.d/luci-app-wan-switch.json
+files/www/luci-static/resources/view/wan_switch/status.js
+files/www/luci-static/resources/view/wan_switch/diagnostics.js
 examples/network-f50.conf
 examples/firewall-wan-zone-snippet.conf
 examples/mwan3.conf
@@ -109,6 +116,12 @@ LuCI 页面地址：
 
 ```text
 http://<router-ip>/cgi-bin/luci/admin/services/wan_switch
+```
+
+诊断页地址：
+
+```text
+http://<router-ip>/cgi-bin/luci/admin/services/wan_switch/diagnostics
 ```
 
 ### 自动切换逻辑
@@ -180,8 +193,8 @@ curl --interface "$CAMPUS_IFACE" "$CAMPUS_LOGIN_URL"
 ./scripts/validate.sh
 ```
 
-它会检查 shell 语法，并扫描常见隐私字段。
-如果本机安装了 `shellcheck` 或 `luac`，也会自动做额外静态检查；同时会检查 README 引用的仓库文件是否存在。
+它会检查 shell 语法、LuCI JS view 语法、menu JSON，并扫描常见隐私字段。
+如果本机安装了 `shellcheck`、`luac` 或 `node`，也会自动做额外静态检查；同时会检查 README 引用的仓库文件是否存在。
 
 ### 注意事项
 
@@ -194,7 +207,8 @@ curl --interface "$CAMPUS_IFACE" "$CAMPUS_LOGIN_URL"
 
 | 现象 | 排查方向 |
 | --- | --- |
-| LuCI 按钮无响应 | 刷新页面并确认已重新安装最新文件；安装脚本会清理 LuCI 缓存并 reload `uhttpd`。 |
+| LuCI 页面没有变成控制台 | 重新运行 `install-openwrt.sh`，确认 `files/usr/share/luci/menu.d/luci-app-wan-switch.json` 和 `files/www/luci-static/resources/view/wan_switch/status.js` 已复制到路由器。 |
+| LuCI 按钮无响应 | 刷新页面并确认已重新安装最新文件；安装脚本会清理 LuCI 缓存并 reload `uhttpd`。新控制台会在按钮上显示 loading 和成功/失败消息。 |
 | 切到校园 WAN 后仍保持 F50 | 校园 WAN 可能未认证或不能出公网；脚本会先尝试 `CAMPUS_LOGIN_URL`，再用 `ping -I "$CAMPUS_IFACE"` 验证，失败时不会切回校园 WAN。 |
 | 页面显示 F50 预备中 | 当前策略已设为 `f50_first`，但 USB/F50 接口离线；插上 F50 并获取 IP 后，新连接会走 F50。 |
 | 游戏或实时业务偶发卡顿 | 先区分 Wi-Fi 段和 F50 移动网络段：从路由器分别 ping F50 网关、公共 DNS、终端 IP。F50 外网丢包通常不是 mwan3 切换造成的。 |
@@ -220,12 +234,16 @@ It is useful when a primary network, such as a campus network or dorm network, h
   - primary WAN
   - F50
   - automatic mode
-- Provides a LuCI dashboard showing:
+- Provides a LuCI network assurance console showing:
+  - whether the network is currently safe
   - current exit path
+  - current policy and recommended action
   - primary WAN and F50 status
+  - the WAN → mwan3 policy → F50 path
   - whether an outage is expected tonight
   - whether F50 protection is active
   - the next automatic action
+  - a read-only diagnostics page
 - Supports China holiday/workday detection for adjusted workdays and holidays.
 - Optionally runs captive-portal login before switching back to the primary WAN.
 
@@ -276,6 +294,12 @@ Open LuCI:
 
 ```text
 http://<router-ip>/cgi-bin/luci/admin/services/wan_switch
+```
+
+Diagnostics:
+
+```text
+http://<router-ip>/cgi-bin/luci/admin/services/wan_switch/diagnostics
 ```
 
 ### Automatic Schedule
@@ -341,8 +365,8 @@ Before publishing or packaging, run:
 ./scripts/validate.sh
 ```
 
-The check verifies shell syntax and scans for common private values.
-If `shellcheck` or `luac` is installed locally, the script also runs those checks. It also verifies that README-referenced repository files exist.
+The check verifies shell syntax, LuCI JS view syntax, menu JSON, and scans for common private values.
+If `shellcheck`, `luac`, or `node` is installed locally, the script also runs deeper checks. It also verifies that README-referenced repository files exist.
 
 ### Notes
 
@@ -355,7 +379,8 @@ If `shellcheck` or `luac` is installed locally, the script also runs those check
 
 | Symptom | What to check |
 | --- | --- |
-| LuCI buttons do nothing | Refresh the page and reinstall the latest files. The installer clears LuCI caches and reloads `uhttpd`. |
+| LuCI still shows the old page | Re-run `install-openwrt.sh` and confirm `files/usr/share/luci/menu.d/luci-app-wan-switch.json` and `files/www/luci-static/resources/view/wan_switch/status.js` were copied to the router. |
+| LuCI buttons do nothing | Refresh the page and reinstall the latest files. The installer clears LuCI caches and reloads `uhttpd`. The new console shows loading and success/failure messages. |
 | Switching to primary WAN keeps F50 active | The primary WAN may still be captive-portal blocked. The script tries `CAMPUS_LOGIN_URL` and verifies `ping -I "$CAMPUS_IFACE"` before switching back. |
 | Dashboard shows F50 prepared | The policy is already `f50_first`, but the USB/F50 interface is offline. Once F50 is plugged in and gets an IP, new connections can use it. |
 | Games or realtime traffic stutter | Separate Wi-Fi issues from mobile-network jitter by pinging the F50 gateway, a public DNS target, and the client IP from the router. F50 packet loss is usually outside mwan3 itself. |

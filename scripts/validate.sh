@@ -23,6 +23,14 @@ if command -v luac >/dev/null 2>&1; then
 		"$root/files/usr/lib/lua/luci/model/cbi/wan_switch.lua"
 fi
 
+if command -v node >/dev/null 2>&1; then
+	node -e 'const fs = require("fs"); for (const file of process.argv.slice(1)) new Function(fs.readFileSync(file, "utf8"));' \
+		"$root/files/www/luci-static/resources/view/wan_switch/status.js" \
+		"$root/files/www/luci-static/resources/view/wan_switch/diagnostics.js"
+	node -e 'const fs = require("fs"); JSON.parse(fs.readFileSync(process.argv[1], "utf8"));' \
+		"$root/files/usr/share/luci/menu.d/luci-app-wan-switch.json"
+fi
+
 missing_readme_paths=""
 for rel in $(grep -Eo '(\.github|files|scripts|examples)/[A-Za-z0-9_./-]+|README\.md|LICENSE|CHANGELOG\.md|install-openwrt\.sh' "$root/README.md" | sort -u); do
 	if [ ! -e "$root/$rel" ]; then
