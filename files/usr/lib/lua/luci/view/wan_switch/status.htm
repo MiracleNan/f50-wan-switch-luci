@@ -30,6 +30,16 @@
 		return '未知';
 	}
 
+	function holidaySourceLabel(value) {
+		if (value === 'api')
+			return '节假日接口';
+		if (value === 'cache')
+			return '本地缓存';
+		if (value === 'fallback')
+			return '周末规则 fallback';
+		return '';
+	}
+
 	function setText(id, value) {
 		var elem = byId(id);
 		if (elem)
@@ -45,20 +55,27 @@
 	}
 
 	function updateDashboard(data) {
-		var exitIp = data.default_rule === 'f50_first' ? data.f50_ip : data.wan_ip;
-		var exitKind = data.default_rule === 'f50_first' ? 'USB设备' : '校园网';
+		var source = holidaySourceLabel(data.tomorrow_source);
+		var subtitle = data.now + ' · ' + data.window_label;
+		var exitNote = data.exit_note || data.policy_label || '';
+		var f50Line = (data.f50_online ? 'F50 在线' : 'F50 离线') + (data.f50_ip ? ' · ' + data.f50_ip : '');
+
+		if (source)
+			subtitle += ' · 工作日来源：' + source;
+		if (data.exit_ip)
+			exitNote = data.exit_ip + (exitNote ? ' · ' + exitNote : '');
 
 		setDashboardClass(data.level);
 		setText('wan-switch-headline', data.headline);
-		setText('wan-switch-subtitle', data.now + ' · ' + data.window_label);
+		setText('wan-switch-subtitle', subtitle);
 		setText('wan-switch-current-exit', data.current_exit);
-		setText('wan-switch-current-ip', exitIp || '无 IP');
-		setText('wan-switch-current-kind', exitKind);
+		setText('wan-switch-current-ip', exitNote || '无 IP');
+		setText('wan-switch-current-kind', data.exit_kind);
 		setText('wan-switch-outage-tonight', data.outage_tonight ? '会' : '不会');
-		setText('wan-switch-outage-detail', data.outage_tonight ? '明天是工作日，预计今晚 23:30 左右断网' : '明天不是工作日，预计今晚不断网');
-		setText('wan-switch-protection', data.outage_window ? '断网窗口中' : (data.default_rule === 'f50_first' ? '已提前保护' : '待命'));
+		setText('wan-switch-outage-detail', data.outage_tonight ? '明天是工作日，预计今晚 ' + data.night_switch_label + ' 左右断网' : '明天不是工作日，预计今晚不断网');
+		setText('wan-switch-protection', data.protection_label);
 		setText('wan-switch-next-action', data.next_action);
-		setText('wan-switch-f50-line', (data.f50_online ? 'F50 在线' : 'F50 离线') + (data.f50_ip ? ' · ' + data.f50_ip : ''));
+		setText('wan-switch-f50-line', f50Line + ' · ' + data.policy_label);
 	}
 
 	function updateButtons(data) {
@@ -68,7 +85,7 @@
 		if (campusBtn)
 			campusBtn.disabled = data.default_rule === 'campus_first';
 		if (f50Btn)
-			f50Btn.disabled = data.default_rule === 'f50_first' || !data.f50_online;
+			f50Btn.disabled = data.default_rule === 'f50_first';
 	}
 
 	function updateStatus(data) {
@@ -94,7 +111,7 @@
 
 		var notice = byId('wan-switch-notice');
 		if (notice)
-			notice.innerHTML = busy ? '切换中...' : '';
+			notice.textContent = busy ? '切换中...' : '';
 	}
 
 	function requestJson(url, params, callback) {
@@ -144,14 +161,15 @@
 			setBusy(false);
 
 			var notice = byId('wan-switch-notice');
-			if (data && data.success) {
+			if (data) {
 				if (notice)
-					notice.innerHTML = '切换完成';
-				updateStatus(data.status);
+					notice.textContent = data.message || (data.success ? '切换完成' : '切换失败');
+				if (data.status)
+					updateStatus(data.status);
 			}
 			else {
 				if (notice)
-					notice.innerHTML = '切换失败';
+					notice.textContent = '切换失败';
 			}
 		});
 

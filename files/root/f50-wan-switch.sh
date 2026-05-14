@@ -11,10 +11,60 @@ CONFIG_FILE="/root/f50-wan-switch.conf"
 CAMPUS_IFACE="eth1"
 CAMPUS_CHECK_IP="223.5.5.5"
 CAMPUS_LOGIN_URL=""
+NIGHT_SWITCH_HM="2320"
+MORNING_SWITCH_HM="0750"
+HOLIDAY_FALLBACK_TTL="3600"
+
+is_uint() {
+	case "${1:-}" in
+		""|*[!0-9]*)
+			return 1
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
+
+positive_int() {
+	value="${1:-}"
+	default="${2:-0}"
+
+	if is_uint "$value" && [ "$value" -gt 0 ]; then
+		echo "$value"
+	else
+		echo "$default"
+	fi
+}
+
+normalize_hm() {
+	value="$(printf '%s' "${1:-}" | tr -d ':[:space:]')"
+	default="${2:-0}"
+
+	if ! is_uint "$value"; then
+		echo "$default"
+		return 0
+	fi
+
+	value="$(printf '%s' "$value" | sed 's/^0*//')"
+	[ -n "$value" ] || value=0
+	echo "$value"
+}
+
+format_hm() {
+	hm="$(normalize_hm "${1:-0}" 0)"
+	padded="$(printf '%04d' "$hm")"
+	printf '%s:%s\n' "${padded%??}" "${padded#??}"
+}
 
 if [ -r "$CONFIG_FILE" ]; then
+	# shellcheck source=/dev/null
 	. "$CONFIG_FILE"
 fi
+
+NIGHT_SWITCH_HM="$(normalize_hm "$NIGHT_SWITCH_HM" 2320)"
+MORNING_SWITCH_HM="$(normalize_hm "$MORNING_SWITCH_HM" 750)"
+HOLIDAY_FALLBACK_TTL="$(positive_int "$HOLIDAY_FALLBACK_TTL" 3600)"
 
 date_for_offset() {
 	now="$(date +%s)"
@@ -28,88 +78,130 @@ dow_for_offset() {
 	date -d "@$((now + offset * 86400))" +%u
 }
 
-holiday_type_for_date() {
+current_hm() {
+	normalize_hm "$(date +%H%M)" 0
+}
+
+holiday_type_from_dow() {
+	case "$1" in
+		1|2|3|4|5)
+			echo 0
+			;;
+		*)
+			echo 1
+			;;
+	esac
+}
+
+holiday_info_for_date() {
 	day="$1"
+	dow="$2"
 	cache_file="$CACHE_DIR/$day.type"
+	fallback_file="$CACHE_DIR/$day.fallback"
 
 	if [ -s "$cache_file" ]; then
-		cat "$cache_file"
-		return 0
+		holiday_type="$(sed -n '1p' "$cache_file")"
+		case "$holiday_type" in
+			0|1|2|3)
+				printf '%s cache\n' "$holiday_type"
+				return 0
+				;;
+		esac
 	fi
 
 	mkdir -p "$CACHE_DIR"
-	body="$(
+	now="$(date +%s)"
+
+	if [ -s "$fallback_file" ] && read -r saved_epoch saved_type < "$fallback_file"; then
+		if is_uint "$saved_epoch" && [ $((now - saved_epoch)) -lt "$HOLIDAY_FALLBACK_TTL" ]; then
+			case "$saved_type" in
+				0|1|2|3)
+					printf '%s fallback\n' "$saved_type"
+					return 0
+					;;
+			esac
+		fi
+	fi
+
+	if body="$(
 		curl -fsS \
 			-A "$USER_AGENT" \
 			--connect-timeout 5 \
 			--max-time 8 \
 			"$HOLIDAY_API/$day" 2>/dev/null
-	)" || return 1
+	)"; then
+		code="$(printf '%s' "$body" | jsonfilter -e '@.code' 2>/dev/null || true)"
+		holiday_type="$(printf '%s' "$body" | jsonfilter -e '@.type.type' 2>/dev/null || true)"
 
-	code="$(printf '%s' "$body" | jsonfilter -e '@.code' 2>/dev/null || true)"
-	holiday_type="$(printf '%s' "$body" | jsonfilter -e '@.type.type' 2>/dev/null || true)"
+		if [ "$code" = "0" ]; then
+			case "$holiday_type" in
+				0|1|2|3)
+					printf '%s\n' "$holiday_type" > "$cache_file"
+					rm -f "$fallback_file" 2>/dev/null || true
+					printf '%s api\n' "$holiday_type"
+					return 0
+					;;
+			esac
+		fi
+	fi
 
-	if [ "$code" = "0" ] && [ -n "$holiday_type" ]; then
-		printf '%s\n' "$holiday_type" > "$cache_file"
-		printf '%s\n' "$holiday_type"
+	holiday_type="$(holiday_type_from_dow "$dow")"
+	printf '%s %s\n' "$now" "$holiday_type" > "$fallback_file"
+	printf '%s fallback\n' "$holiday_type"
+}
+
+workday_info() {
+	day="$1"
+	dow="$2"
+	info="$(holiday_info_for_date "$day" "$dow")"
+	holiday_type="${info%% *}"
+	source="${info#* }"
+
+	case "$holiday_type" in
+		0|3)
+			printf 'yes %s\n' "$source"
+			return 0
+			;;
+		1|2)
+			printf 'no %s\n' "$source"
+			return 0
+			;;
+	esac
+
+	if [ "$(holiday_type_from_dow "$dow")" = "0" ]; then
+		printf 'yes fallback\n'
+	else
+		printf 'no fallback\n'
+	fi
+}
+
+is_workday() {
+	day="$1"
+	dow="$2"
+	info="$(workday_info "$day" "$dow")"
+
+	if [ "${info%% *}" = "yes" ]; then
 		return 0
 	fi
 
 	return 1
 }
 
-is_workday() {
-	day="$1"
-	dow="$2"
-
-	if holiday_type="$(holiday_type_for_date "$day")"; then
-		case "$holiday_type" in
-			0|3)
-				return 0
-				;;
-			1|2)
-				return 1
-				;;
-		esac
-	fi
-
-	case "$dow" in
-		1|2|3|4|5)
-			return 0
-			;;
-		*)
-			return 1
-			;;
-	esac
-}
-
-workday_label() {
-	day="$1"
-	dow="$2"
-
-	if is_workday "$day" "$dow"; then
-		echo yes
-	else
-		echo no
-	fi
-}
-
 choose_auto_mode() {
-	hm="$(date +%H%M | sed 's/^0*//')"
-	[ -n "$hm" ] || hm=0
+	hm="$(current_hm)"
 
 	today="$(date_for_offset 0)"
 	today_dow="$(dow_for_offset 0)"
 	tomorrow="$(date_for_offset 1)"
 	tomorrow_dow="$(dow_for_offset 1)"
 
-	if [ "$hm" -lt 750 ]; then
+	if [ "$hm" -lt "$MORNING_SWITCH_HM" ]; then
 		if is_workday "$today" "$today_dow"; then
 			echo f50
 		else
 			echo campus
 		fi
-	elif [ "$hm" -ge 2320 ]; then
+	elif [ "$hm" -ge "$NIGHT_SWITCH_HM" ]; then
 		if is_workday "$tomorrow" "$tomorrow_dow"; then
 			echo f50
 		else
@@ -162,10 +254,16 @@ case "$MODE" in
 		today_dow="$(dow_for_offset 0)"
 		tomorrow="$(date_for_offset 1)"
 		tomorrow_dow="$(dow_for_offset 1)"
+		today_info="$(workday_info "$today" "$today_dow")"
+		tomorrow_info="$(workday_info "$tomorrow" "$tomorrow_dow")"
 		echo "default_rule=$(uci -q get mwan3.default_rule.use_policy || true)"
 		echo "https=$(uci -q get mwan3.https.use_policy || true)"
-		echo "today=$today workday=$(workday_label "$today" "$today_dow")"
-		echo "tomorrow=$tomorrow workday=$(workday_label "$tomorrow" "$tomorrow_dow")"
+		echo "today=$today workday=${today_info%% *} source=${today_info#* }"
+		echo "tomorrow=$tomorrow workday=${tomorrow_info%% *} source=${tomorrow_info#* }"
+		echo "night_switch_hm=$NIGHT_SWITCH_HM"
+		echo "morning_switch_hm=$MORNING_SWITCH_HM"
+		echo "night_switch_label=$(format_hm "$NIGHT_SWITCH_HM")"
+		echo "morning_switch_label=$(format_hm "$MORNING_SWITCH_HM")"
 		if [ "$MODE" = "status" ]; then
 			mwan3 status
 		fi

@@ -6,3 +6,10 @@
 CAMPUS_IFACE='eth1'
 CAMPUS_CHECK_IP='223.5.5.5'
 CAMPUS_LOGIN_URL='http://example.edu/login?user=YOUR_USER&password=YOUR_PASSWORD'
+
+# Optional schedule overrides. Values may be HHMM or HH:MM.
+NIGHT_SWITCH_HM='2320'
+MORNING_SWITCH_HM='0750'
+
+# Optional fallback cache TTL in seconds when the holiday API is unreachable.
+HOLIDAY_FALLBACK_TTL='3600'

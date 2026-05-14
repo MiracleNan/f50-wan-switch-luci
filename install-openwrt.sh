@@ -12,6 +12,18 @@ if [ ! -f files/root/f50-wan-switch.sh ]; then
 	exit 1
 fi
 
+missing=""
+for cmd in mwan3 curl jsonfilter; do
+	if ! command -v "$cmd" >/dev/null 2>&1; then
+		missing="$missing $cmd"
+	fi
+done
+
+if [ -n "$missing" ]; then
+	echo "Warning: missing runtime command(s):$missing" >&2
+	echo "Install them with: opkg update && opkg install mwan3 curl jsonfilter luci-app-mwan3" >&2
+fi
+
 stamp="$(date +%Y%m%d-%H%M%S)"
 backup="/root/f50-wan-switch-luci-backup-$stamp.tgz"
 

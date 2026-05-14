@@ -69,7 +69,7 @@ examples/f50-wan-switch.conf.example
 
 ```sh
 opkg update
-opkg install mwan3 luci-app-mwan3 curl
+opkg install mwan3 luci-app-mwan3 curl jsonfilter
 ```
 
 ### 安装
@@ -119,6 +119,16 @@ http://<router-ip>/cgi-bin/luci/admin/services/wan_switch
 - 如果今天是工作日，`07:50` 前保持 F50。
 - 其他时间使用主 WAN。
 
+可以在 `/root/f50-wan-switch.conf` 里覆盖时间：
+
+```sh
+NIGHT_SWITCH_HM='2320'
+MORNING_SWITCH_HM='0750'
+HOLIDAY_FALLBACK_TTL='3600'
+```
+
+时间支持 `HHMM` 或 `HH:MM`。`HOLIDAY_FALLBACK_TTL` 是节假日接口失败时的 fallback 缓存时间，单位是秒。
+
 节假日和调休数据来自：
 
 ```text
@@ -132,6 +142,7 @@ https://timor.tech/api/holiday/info/YYYY-MM-DD
 ```
 
 如果接口不可用，脚本会退回普通周一到周五规则。
+LuCI 页面会显示工作日判断来源：`api`、`cache` 或 `fallback`。
 
 ### 门户认证
 
@@ -170,6 +181,7 @@ curl --interface "$CAMPUS_IFACE" "$CAMPUS_LOGIN_URL"
 ```
 
 它会检查 shell 语法，并扫描常见隐私字段。
+如果本机安装了 `shellcheck` 或 `luac`，也会自动做额外静态检查；同时会检查 README 引用的仓库文件是否存在。
 
 ### 注意事项
 
@@ -177,6 +189,15 @@ curl --interface "$CAMPUS_IFACE" "$CAMPUS_LOGIN_URL"
 - 已建立的连接可能继续停留在旧出口，新连接才会按新策略走。
 - 不同路由器的 USB 共享网络设备名可能是 `eth2`、`usb0`、`wwan0` 等，使用前需要确认。
 - 公开仓库不要提交真实的 `/root/f50-wan-switch.conf`。
+
+### 常见问题
+
+| 现象 | 排查方向 |
+| --- | --- |
+| LuCI 按钮无响应 | 刷新页面并确认已重新安装最新文件；安装脚本会清理 LuCI 缓存并 reload `uhttpd`。 |
+| 切到校园 WAN 后仍保持 F50 | 校园 WAN 可能未认证或不能出公网；脚本会先尝试 `CAMPUS_LOGIN_URL`，再用 `ping -I "$CAMPUS_IFACE"` 验证，失败时不会切回校园 WAN。 |
+| 页面显示 F50 预备中 | 当前策略已设为 `f50_first`，但 USB/F50 接口离线；插上 F50 并获取 IP 后，新连接会走 F50。 |
+| 游戏或实时业务偶发卡顿 | 先区分 Wi-Fi 段和 F50 移动网络段：从路由器分别 ping F50 网关、公共 DNS、终端 IP。F50 外网丢包通常不是 mwan3 切换造成的。 |
 
 ### License
 
@@ -219,7 +240,7 @@ Install packages as needed:
 
 ```sh
 opkg update
-opkg install mwan3 luci-app-mwan3 curl
+opkg install mwan3 luci-app-mwan3 curl jsonfilter
 ```
 
 ### Installation
@@ -265,6 +286,16 @@ The default script assumes this use case:
 - if today is a workday, keep F50 before `07:50`;
 - otherwise use the primary WAN.
 
+Override the schedule in `/root/f50-wan-switch.conf` if needed:
+
+```sh
+NIGHT_SWITCH_HM='2320'
+MORNING_SWITCH_HM='0750'
+HOLIDAY_FALLBACK_TTL='3600'
+```
+
+Times may be written as `HHMM` or `HH:MM`. `HOLIDAY_FALLBACK_TTL` is the fallback cache TTL in seconds when the holiday API is unreachable.
+
 It checks Chinese holiday/workday data from:
 
 ```text
@@ -278,6 +309,7 @@ Results are cached under:
 ```
 
 If the API is unavailable, the script falls back to Monday-Friday as workdays.
+The LuCI dashboard reports the workday source as `api`, `cache`, or `fallback`.
 
 ### Captive-Portal Login
 
@@ -310,6 +342,7 @@ Before publishing or packaging, run:
 ```
 
 The check verifies shell syntax and scans for common private values.
+If `shellcheck` or `luac` is installed locally, the script also runs those checks. It also verifies that README-referenced repository files exist.
 
 ### Notes
 
@@ -317,6 +350,15 @@ The check verifies shell syntax and scans for common private values.
 - Existing connections may stay on the previous WAN until they reconnect.
 - Review the interface names before applying. Some routers use `usb0`, `eth2`, `wwan0`, or another device name for USB tethering.
 - Do not commit a real `/root/f50-wan-switch.conf` to a public repository.
+
+### Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| LuCI buttons do nothing | Refresh the page and reinstall the latest files. The installer clears LuCI caches and reloads `uhttpd`. |
+| Switching to primary WAN keeps F50 active | The primary WAN may still be captive-portal blocked. The script tries `CAMPUS_LOGIN_URL` and verifies `ping -I "$CAMPUS_IFACE"` before switching back. |
+| Dashboard shows F50 prepared | The policy is already `f50_first`, but the USB/F50 interface is offline. Once F50 is plugged in and gets an IP, new connections can use it. |
+| Games or realtime traffic stutter | Separate Wi-Fi issues from mobile-network jitter by pinging the F50 gateway, a public DNS target, and the client IP from the router. F50 packet loss is usually outside mwan3 itself. |
 
 ### License
 
