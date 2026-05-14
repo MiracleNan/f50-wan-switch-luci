@@ -2,7 +2,7 @@
 
 set -eu
 
-root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 
 sh -n "$root/files/root/f50-wan-switch.sh"
 sh -n "$root/files/etc/init.d/f50-wan-switch"
@@ -32,6 +32,7 @@ if command -v node >/dev/null 2>&1; then
 fi
 
 missing_readme_paths=""
+# shellcheck disable=SC2013
 for rel in $(grep -Eo '(\.github|files|scripts|examples)/[A-Za-z0-9_./-]+|README\.md|LICENSE|CHANGELOG\.md|install-openwrt\.sh' "$root/README.md" | sort -u); do
 	if [ ! -e "$root/$rel" ]; then
 		missing_readme_paths="$missing_readme_paths
@@ -46,6 +47,7 @@ if [ -n "$missing_readme_paths" ]; then
 fi
 
 matches=""
+# shellcheck disable=SC2044
 for file in $(find "$root" -type f \
 	! -path "$root/.git/*" \
 	! -path "$root/examples/f50-wan-switch.conf.example" \
