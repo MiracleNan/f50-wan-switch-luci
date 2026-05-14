@@ -11,8 +11,8 @@ var busyTarget = null;
 var pollStarted = false;
 
 var STYLE = [
-	':root { --ws-bg: #f5f7fb; --ws-surface: #ffffff; --ws-text: #172033; --ws-muted: #647084; --ws-line: #dce3ee; --ws-soft: #eef3f8; --ws-success: #16845b; --ws-success-bg: #e6f6ef; --ws-warning: #9a6500; --ws-warning-bg: #fff4d8; --ws-danger: #c4362e; --ws-danger-bg: #fdebea; --ws-info: #2563a8; --ws-info-bg: #e8f1fb; --ws-shadow: 0 10px 30px rgba(18, 32, 52, .08); }',
-	'.wan-switch-console { color: var(--ws-text); max-width: 1160px; margin: 0 auto; overflow-x: hidden; }',
+	':root { --ws-bg: #f6f8fb; --ws-surface: #ffffff; --ws-text: #172033; --ws-muted: #5f6c82; --ws-line: #dce4ef; --ws-soft: #f1f5f9; --ws-success: #137a5b; --ws-success-bg: #e9f7f1; --ws-warning: #9a5b00; --ws-warning-bg: #fff7e6; --ws-danger: #ba332b; --ws-danger-bg: #fff0ee; --ws-info: #245d9f; --ws-info-bg: #eaf3fb; --ws-shadow: 0 10px 28px rgba(18, 32, 52, .07); }',
+	'.wan-switch-console { color: var(--ws-text); max-width: 1160px; margin: 0 auto; overflow-x: hidden; padding-bottom: 92px; }',
 	'.wan-switch-console * { box-sizing: border-box; min-width: 0; }',
 	'.wan-switch-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 0 0 16px; }',
 	'.wan-switch-title h2 { margin: 0; font-size: 24px; line-height: 1.25; font-weight: 700; }',
@@ -20,16 +20,21 @@ var STYLE = [
 	'.ws-toolbar { display: flex; gap: 8px; flex-wrap: wrap; }',
 	'.ws-message { border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; border: 1px solid var(--ws-line); background: var(--ws-soft); color: var(--ws-text); }',
 	'.ws-message.is-hidden { display: none; }',
-	'.ws-message.success { background: var(--ws-success-bg); color: var(--ws-success); border-color: rgba(22, 132, 91, .26); }',
-	'.ws-message.warning { background: var(--ws-warning-bg); color: var(--ws-warning); border-color: rgba(154, 101, 0, .26); }',
-	'.ws-message.danger { background: var(--ws-danger-bg); color: var(--ws-danger); border-color: rgba(196, 54, 46, .26); }',
-	'.ws-message.info { background: var(--ws-info-bg); color: var(--ws-info); border-color: rgba(37, 99, 168, .22); }',
+	'.ws-message.ws-level-success { background: var(--ws-success-bg); color: var(--ws-success); border-color: rgba(19, 122, 91, .26); }',
+	'.ws-message.ws-level-warning { background: var(--ws-warning-bg); color: var(--ws-warning); border-color: rgba(154, 91, 0, .26); }',
+	'.ws-message.ws-level-danger { background: var(--ws-danger-bg); color: var(--ws-danger); border-color: rgba(186, 51, 43, .26); }',
+	'.ws-message.ws-level-info { background: var(--ws-info-bg); color: var(--ws-info); border-color: rgba(36, 93, 159, .22); }',
 	'.ws-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }',
 	'.ws-hero { position: relative; border-radius: 12px; padding: 18px; background: var(--ws-surface); border: 1px solid var(--ws-line); box-shadow: var(--ws-shadow); overflow: hidden; }',
 	'.ws-hero:before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--ws-info); }',
-	'.ws-hero.success:before { background: var(--ws-success); }',
-	'.ws-hero.warning:before { background: var(--ws-warning); }',
-	'.ws-hero.danger:before { background: var(--ws-danger); }',
+	'.ws-hero.ws-level-success { background: linear-gradient(180deg, #f7fffb 0%, #fff 72%); border-color: rgba(19, 122, 91, .22); }',
+	'.ws-hero.ws-level-warning { background: linear-gradient(180deg, #fffaf0 0%, #fff 72%); border-color: rgba(154, 91, 0, .22); }',
+	'.ws-hero.ws-level-danger { background: linear-gradient(180deg, #fff5f3 0%, #fff 72%); border-color: rgba(186, 51, 43, .24); }',
+	'.ws-hero.ws-level-info { background: linear-gradient(180deg, #f3f8fe 0%, #fff 72%); border-color: rgba(36, 93, 159, .22); }',
+	'.ws-hero.ws-level-success:before { background: var(--ws-success); }',
+	'.ws-hero.ws-level-warning:before { background: var(--ws-warning); }',
+	'.ws-hero.ws-level-danger:before { background: var(--ws-danger); }',
+	'.ws-hero.ws-level-info:before { background: var(--ws-info); }',
 	'.ws-hero-inner { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(220px, .8fr); gap: 18px; align-items: end; }',
 	'.ws-hero h1 { margin: 8px 0 8px; font-size: 32px; line-height: 1.15; letter-spacing: 0; }',
 	'.ws-hero-summary { color: var(--ws-muted); font-size: 14px; line-height: 1.55; }',
@@ -41,12 +46,13 @@ var STYLE = [
 	'.ws-card { background: var(--ws-surface); border: 1px solid var(--ws-line); border-radius: 12px; padding: 14px; box-shadow: 0 6px 18px rgba(18, 32, 52, .04); }',
 	'.ws-card h3 { margin: 0 0 12px; font-size: 16px; line-height: 1.35; }',
 	'.ws-card-subtle { color: var(--ws-muted); margin: -6px 0 12px; line-height: 1.5; }',
-	'.ws-pill { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; border-radius: 999px; padding: 4px 9px; font-size: 12px; line-height: 1.2; font-weight: 650; white-space: normal; }',
-	'.ws-pill.success { color: var(--ws-success); background: var(--ws-success-bg); }',
-	'.ws-pill.warning { color: var(--ws-warning); background: var(--ws-warning-bg); }',
-	'.ws-pill.danger { color: var(--ws-danger); background: var(--ws-danger-bg); }',
-	'.ws-pill.info { color: var(--ws-info); background: var(--ws-info-bg); }',
-	'.ws-pill.neutral { color: var(--ws-muted); background: var(--ws-soft); }',
+	'.ws-pill { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: fit-content; max-width: 100%; flex: 0 0 auto; align-self: flex-start; border-radius: 999px; padding: 4px 9px; font-size: 12px; line-height: 1.2; font-weight: 650; white-space: normal; }',
+	'.ws-node-head .ws-pill { align-self: center; }',
+	'.ws-pill.ws-level-success { color: var(--ws-success); background: var(--ws-success-bg); }',
+	'.ws-pill.ws-level-warning { color: var(--ws-warning); background: var(--ws-warning-bg); }',
+	'.ws-pill.ws-level-danger { color: var(--ws-danger); background: var(--ws-danger-bg); }',
+	'.ws-pill.ws-level-info { color: var(--ws-info); background: var(--ws-info-bg); }',
+	'.ws-pill.ws-level-neutral { color: var(--ws-muted); background: var(--ws-soft); }',
 	'.ws-path { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, .75fr) auto minmax(0, 1fr); gap: 10px; align-items: stretch; }',
 	'.ws-path-node { border: 1px solid var(--ws-line); border-radius: 12px; padding: 12px; background: #fbfdff; display: grid; gap: 8px; }',
 	'.ws-path-node.is-current { border-color: rgba(22, 132, 91, .45); background: var(--ws-success-bg); }',
@@ -64,8 +70,8 @@ var STYLE = [
 	'.ws-info-note { color: var(--ws-muted); font-size: 12px; margin-top: 6px; line-height: 1.35; overflow-wrap: anywhere; }',
 	'.ws-timeline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }',
 	'.ws-step { border: 1px solid var(--ws-line); border-radius: 12px; padding: 12px; background: #fbfdff; }',
-	'.ws-step.active { border-color: rgba(37, 99, 168, .35); background: var(--ws-info-bg); }',
-	'.ws-step.pending { border-color: rgba(154, 101, 0, .25); background: var(--ws-warning-bg); }',
+	'.ws-step.ws-step-active { border-color: rgba(36, 93, 159, .35); background: var(--ws-info-bg); }',
+	'.ws-step.ws-step-pending { border-color: rgba(154, 91, 0, .25); background: var(--ws-warning-bg); }',
 	'.ws-step-label { color: var(--ws-muted); font-size: 12px; margin-bottom: 5px; }',
 	'.ws-step-value { font-weight: 700; font-size: 16px; line-height: 1.3; overflow-wrap: anywhere; }',
 	'.ws-step-text { color: var(--ws-muted); font-size: 12px; margin-top: 5px; line-height: 1.35; }',
@@ -78,16 +84,17 @@ var STYLE = [
 	'.ws-btn:hover:not(:disabled) { background: var(--ws-soft); border-color: #c7d1df; }',
 	'.ws-btn:active:not(:disabled) { transform: translateY(1px); }',
 	'.ws-btn:disabled { opacity: .55; cursor: wait; }',
-	'.ws-btn.primary { background: var(--ws-info); border-color: var(--ws-info); color: #fff; }',
-	'.ws-btn.primary.success { background: var(--ws-success); border-color: var(--ws-success); }',
-	'.ws-btn.primary.warning { background: var(--ws-warning); border-color: var(--ws-warning); }',
-	'.ws-btn.primary.danger { background: var(--ws-danger); border-color: var(--ws-danger); }',
+	'.ws-btn.ws-primary { background: var(--ws-info); border-color: var(--ws-info); color: #fff; }',
+	'.ws-btn.ws-primary.ws-level-success { background: var(--ws-success); border-color: var(--ws-success); }',
+	'.ws-btn.ws-primary.ws-level-warning { background: var(--ws-warning); border-color: var(--ws-warning); }',
+	'.ws-btn.ws-primary.ws-level-danger { background: var(--ws-danger); border-color: var(--ws-danger); }',
+	'.ws-btn.ws-primary.ws-level-info { background: var(--ws-info); border-color: var(--ws-info); }',
 	'.ws-btn.weak { border-style: dashed; color: var(--ws-muted); }',
 	'.ws-reason-list { margin: 0; padding-left: 18px; display: grid; gap: 7px; line-height: 1.5; }',
 	'.ws-diagnostics-link { margin-top: 12px; }',
 	'.ws-diagnostics-link a { color: var(--ws-info); font-weight: 650; }',
 	'@media (max-width: 880px) { .ws-hero-inner, .ws-action-layout { grid-template-columns: minmax(0, 1fr); } .ws-info-grid, .ws-timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ws-path { grid-template-columns: minmax(0, 1fr); } .ws-path-arrow { min-height: 10px; } }',
-	'@media (max-width: 560px) { .wan-switch-title { align-items: flex-start; } .wan-switch-title h2 { font-size: 21px; } .ws-hero h1 { font-size: 25px; } .ws-info-grid, .ws-timeline { grid-template-columns: minmax(0, 1fr); } .ws-btn { width: 100%; } .ws-toolbar { width: 100%; } }'
+	'@media (max-width: 560px) { .wan-switch-title { align-items: flex-start; } .wan-switch-title h2 { font-size: 21px; } .ws-hero h1 { font-size: 25px; } .ws-meta-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; } .ws-meta-row strong { text-align: left; } .ws-info-grid, .ws-timeline { grid-template-columns: minmax(0, 1fr); } .ws-btn { width: 100%; } .ws-toolbar { width: 100%; } }'
 ].join('\n');
 
 function statusUrl() {
@@ -141,14 +148,14 @@ function riskLevel(status) {
 }
 
 function pill(label, level) {
-	return E('span', { 'class': 'ws-pill ' + (level || 'neutral') }, label);
+	return E('span', { 'class': 'ws-pill ws-level-' + (level || 'neutral') }, label);
 }
 
 function showMessage(message, level) {
 	if (!messageHost)
 		return;
 
-	messageHost.className = 'ws-message ' + (level || 'info');
+	messageHost.className = 'ws-message ws-level-' + (level || 'info');
 	messageHost.textContent = message;
 }
 
@@ -193,7 +200,7 @@ function primaryAction(status) {
 		target: status.recommended_action || 'auto',
 		label: status.recommended_action_label || '按自动规则检查',
 		note: '当前策略基本符合自动规则，可手动触发一次检查确认状态。',
-		level: riskLevel(status)
+		level: 'info'
 	};
 }
 
@@ -201,7 +208,7 @@ function renderHero(status) {
 	var level = riskLevel(status);
 	var subtitle = text(status.current_exit, '未知出口') + ' · ' + policyLabel(status.default_rule) + ' · ' + text(status.next_action, '暂无下一步动作');
 
-	return E('section', { 'class': 'ws-hero ' + level, 'aria-live': 'polite' }, [
+	return E('section', { 'class': 'ws-hero ws-level-' + level, 'aria-live': 'polite' }, [
 		E('div', { 'class': 'ws-hero-inner' }, [
 			E('div', {}, [
 				pill(text(status.risk_label, '状态信息'), level),
@@ -293,7 +300,7 @@ function renderTimeline(status) {
 	return E('section', { 'class': 'ws-card' }, [
 		E('h3', {}, '自动策略时间轴'),
 		E('div', { 'class': 'ws-timeline' }, items.map(function(item) {
-			return E('div', { 'class': 'ws-step ' + text(item.state, 'idle') }, [
+			return E('div', { 'class': 'ws-step ws-step-' + text(item.state, 'idle') }, [
 				E('div', { 'class': 'ws-step-label' }, text(item.label, '-')),
 				E('div', { 'class': 'ws-step-value' }, text(item.value, '-')),
 				E('div', { 'class': 'ws-step-text' }, text(item.text, '-'))
@@ -346,7 +353,7 @@ function actionLabel(target) {
 }
 
 function actionButton(target, label, primary, level, weak) {
-	var classes = 'ws-btn' + (primary ? ' primary ' + (level || 'info') : '') + (weak ? ' weak' : '');
+	var classes = 'ws-btn' + (primary ? ' ws-primary ws-level-' + (level || 'info') : '') + (weak ? ' weak' : '');
 	var busy = busyTarget === target;
 	var attrs = {
 		'class': classes,
@@ -461,7 +468,7 @@ return view.extend({
 		currentStatus = data && !data.load_error ? data : currentStatus;
 
 		stateHost = E('div', { 'class': 'ws-state', 'aria-live': 'polite' });
-		messageHost = E('div', { 'class': data && data.load_error ? 'ws-message warning' : 'ws-message is-hidden', 'aria-live': 'assertive' }, data && data.load_error ? ('状态加载失败，正在重试：' + data.load_error) : '');
+		messageHost = E('div', { 'class': data && data.load_error ? 'ws-message ws-level-warning' : 'ws-message is-hidden', 'aria-live': 'assertive' }, data && data.load_error ? ('状态加载失败，正在重试：' + data.load_error) : '');
 
 		var root = E('div', { 'class': 'wan-switch-console' }, [
 			E('style', {}, STYLE),
@@ -469,9 +476,6 @@ return view.extend({
 				E('div', {}, [
 					E('h2', {}, 'WAN/F50 网络保障控制台'),
 					E('p', {}, '自动保障夜间和早晨断网窗口，手动操作会保留后端现有切换逻辑。')
-				]),
-				E('div', { 'class': 'ws-toolbar' }, [
-					E('a', { 'class': 'ws-btn', 'href': diagnosticsUrl(), 'aria-label': '打开诊断页' }, '诊断页')
 				])
 			]),
 			messageHost,

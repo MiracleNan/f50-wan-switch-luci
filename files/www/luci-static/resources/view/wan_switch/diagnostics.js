@@ -10,8 +10,8 @@ var currentDiagnostics = null;
 var pollStarted = false;
 
 var STYLE = [
-	':root { --wd-surface: #ffffff; --wd-text: #172033; --wd-muted: #647084; --wd-line: #dce3ee; --wd-soft: #eef3f8; --wd-success: #16845b; --wd-danger: #c4362e; --wd-info: #2563a8; --wd-warning: #9a6500; --wd-shadow: 0 8px 24px rgba(18, 32, 52, .06); }',
-	'.wan-switch-diag { color: var(--wd-text); max-width: 1160px; margin: 0 auto; overflow-x: hidden; }',
+	':root { --wd-surface: #ffffff; --wd-text: #172033; --wd-muted: #5f6c82; --wd-line: #dce4ef; --wd-soft: #f1f5f9; --wd-success: #137a5b; --wd-danger: #ba332b; --wd-info: #245d9f; --wd-warning: #9a5b00; --wd-shadow: 0 8px 24px rgba(18, 32, 52, .06); }',
+	'.wan-switch-diag { color: var(--wd-text); max-width: 1160px; margin: 0 auto; overflow-x: hidden; padding-bottom: 92px; }',
 	'.wan-switch-diag * { box-sizing: border-box; min-width: 0; }',
 	'.wd-title { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }',
 	'.wd-title h2 { margin: 0; font-size: 24px; line-height: 1.25; }',
@@ -22,11 +22,11 @@ var STYLE = [
 	'.wd-card.full { grid-column: 1 / -1; }',
 	'.wd-message { border: 1px solid var(--wd-line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; background: var(--wd-soft); color: var(--wd-text); }',
 	'.wd-message.is-hidden { display: none; }',
-	'.wd-message.warning { color: var(--wd-warning); background: #fff4d8; border-color: rgba(154, 101, 0, .25); }',
-	'.wd-pill { display: inline-flex; border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 650; background: var(--wd-soft); color: var(--wd-muted); }',
-	'.wd-pill.success { color: var(--wd-success); background: #e6f6ef; }',
-	'.wd-pill.danger { color: var(--wd-danger); background: #fdebea; }',
-	'.wd-pill.info { color: var(--wd-info); background: #e8f1fb; }',
+	'.wd-message.wd-level-warning { color: var(--wd-warning); background: #fff7e6; border-color: rgba(154, 91, 0, .25); }',
+	'.wd-pill { display: inline-flex; width: fit-content; max-width: 100%; border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 650; background: var(--wd-soft); color: var(--wd-muted); }',
+	'.wd-pill.wd-level-success { color: var(--wd-success); background: #e9f7f1; }',
+	'.wd-pill.wd-level-danger { color: var(--wd-danger); background: #fff0ee; }',
+	'.wd-pill.wd-level-info { color: var(--wd-info); background: #eaf3fb; }',
 	'.wd-kv { display: grid; grid-template-columns: minmax(110px, .36fr) minmax(0, 1fr); gap: 8px 12px; line-height: 1.45; }',
 	'.wd-kv span:nth-child(odd) { color: var(--wd-muted); }',
 	'.wd-kv span:nth-child(even) { overflow-wrap: anywhere; }',
@@ -64,7 +64,7 @@ function text(value, fallback) {
 }
 
 function pill(label, ok) {
-	return E('span', { 'class': 'wd-pill ' + (ok ? 'success' : 'danger') }, label);
+	return E('span', { 'class': 'wd-pill ' + (ok ? 'wd-level-success' : 'wd-level-danger') }, label);
 }
 
 function kv(items) {
@@ -87,7 +87,7 @@ function showMessage(message) {
 	if (!messageHost)
 		return;
 
-	messageHost.className = 'wd-message warning';
+	messageHost.className = 'wd-message wd-level-warning';
 	messageHost.textContent = message;
 }
 
@@ -209,7 +209,7 @@ return view.extend({
 
 	render: function(data) {
 		currentDiagnostics = data && !data.load_error ? data : currentDiagnostics;
-		messageHost = E('div', { 'class': data && data.load_error ? 'wd-message warning' : 'wd-message is-hidden', 'aria-live': 'assertive' }, data && data.load_error ? ('诊断加载失败，正在重试：' + data.load_error) : '');
+		messageHost = E('div', { 'class': data && data.load_error ? 'wd-message wd-level-warning' : 'wd-message is-hidden', 'aria-live': 'assertive' }, data && data.load_error ? ('诊断加载失败，正在重试：' + data.load_error) : '');
 		diagnosticsHost = E('div', { 'aria-live': 'polite' });
 
 		var root = E('div', { 'class': 'wan-switch-diag' }, [
