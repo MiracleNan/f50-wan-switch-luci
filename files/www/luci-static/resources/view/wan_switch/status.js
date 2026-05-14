@@ -25,6 +25,8 @@ var STYLE = [
 	'.ws-message.ws-level-danger { background: var(--ws-danger-bg); color: var(--ws-danger); border-color: rgba(186, 51, 43, .26); }',
 	'.ws-message.ws-level-info { background: var(--ws-info-bg); color: var(--ws-info); border-color: rgba(36, 93, 159, .22); }',
 	'.ws-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }',
+	'.ws-overview { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .75fr); gap: 14px; align-items: stretch; }',
+	'.ws-secondary-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); gap: 14px; align-items: start; }',
 	'.ws-hero { position: relative; border-radius: 12px; padding: 18px; background: var(--ws-surface); border: 1px solid var(--ws-line); box-shadow: var(--ws-shadow); overflow: hidden; }',
 	'.ws-hero:before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--ws-info); }',
 	'.ws-hero.ws-level-success { background: linear-gradient(180deg, #f7fffb 0%, #fff 72%); border-color: rgba(19, 122, 91, .22); }',
@@ -35,14 +37,15 @@ var STYLE = [
 	'.ws-hero.ws-level-warning:before { background: var(--ws-warning); }',
 	'.ws-hero.ws-level-danger:before { background: var(--ws-danger); }',
 	'.ws-hero.ws-level-info:before { background: var(--ws-info); }',
-	'.ws-hero-inner { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(220px, .8fr); gap: 18px; align-items: end; }',
+	'.ws-hero-inner { display: grid; gap: 14px; }',
 	'.ws-hero h1 { margin: 8px 0 8px; font-size: 32px; line-height: 1.15; letter-spacing: 0; }',
 	'.ws-hero-summary { color: var(--ws-muted); font-size: 14px; line-height: 1.55; }',
-	'.ws-hero-meta { display: grid; gap: 8px; }',
-	'.ws-meta-row { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--ws-line); padding-bottom: 8px; }',
-	'.ws-meta-row:last-child { border-bottom: 0; padding-bottom: 0; }',
-	'.ws-meta-row span:first-child { color: var(--ws-muted); }',
-	'.ws-meta-row strong { text-align: right; font-weight: 650; }',
+	'.ws-status-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 4px; }',
+	'.ws-fact { border: 1px solid var(--ws-line); border-radius: 10px; background: rgba(255, 255, 255, .72); padding: 10px; }',
+	'.ws-fact-label { color: var(--ws-muted); font-size: 12px; margin-bottom: 4px; }',
+	'.ws-fact-value { font-size: 16px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }',
+	'.ws-fact-note { color: var(--ws-muted); font-size: 12px; margin-top: 4px; line-height: 1.35; overflow-wrap: anywhere; }',
+	'.ws-refresh-line { color: var(--ws-muted); font-size: 12px; margin-top: 4px; }',
 	'.ws-card { background: var(--ws-surface); border: 1px solid var(--ws-line); border-radius: 12px; padding: 14px; box-shadow: 0 6px 18px rgba(18, 32, 52, .04); }',
 	'.ws-card h3 { margin: 0 0 12px; font-size: 16px; line-height: 1.35; }',
 	'.ws-card-subtle { color: var(--ws-muted); margin: -6px 0 12px; line-height: 1.5; }',
@@ -63,19 +66,14 @@ var STYLE = [
 	'.ws-path-arrow { display: flex; align-items: center; justify-content: center; color: var(--ws-muted); font-weight: 700; }',
 	'.ws-policy-node { text-align: center; justify-content: center; background: var(--ws-soft); }',
 	'.ws-policy-node strong { display: block; margin-bottom: 4px; }',
-	'.ws-info-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }',
-	'.ws-info-card { border: 1px solid var(--ws-line); border-radius: 12px; padding: 12px; background: #fbfdff; }',
-	'.ws-info-label { color: var(--ws-muted); font-size: 12px; margin-bottom: 6px; }',
-	'.ws-info-value { font-size: 18px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }',
-	'.ws-info-note { color: var(--ws-muted); font-size: 12px; margin-top: 6px; line-height: 1.35; overflow-wrap: anywhere; }',
-	'.ws-timeline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }',
+	'.ws-timeline { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }',
 	'.ws-step { border: 1px solid var(--ws-line); border-radius: 12px; padding: 12px; background: #fbfdff; }',
 	'.ws-step.ws-step-active { border-color: rgba(36, 93, 159, .35); background: var(--ws-info-bg); }',
 	'.ws-step.ws-step-pending { border-color: rgba(154, 91, 0, .25); background: var(--ws-warning-bg); }',
 	'.ws-step-label { color: var(--ws-muted); font-size: 12px; margin-bottom: 5px; }',
 	'.ws-step-value { font-weight: 700; font-size: 16px; line-height: 1.3; overflow-wrap: anywhere; }',
 	'.ws-step-text { color: var(--ws-muted); font-size: 12px; margin-top: 5px; line-height: 1.35; }',
-	'.ws-action-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr); gap: 12px; align-items: stretch; }',
+	'.ws-action-layout { display: grid; gap: 12px; align-items: stretch; }',
 	'.ws-primary-action { display: grid; gap: 10px; align-content: start; }',
 	'.ws-action-title { font-size: 18px; font-weight: 700; }',
 	'.ws-action-note { color: var(--ws-muted); line-height: 1.5; }',
@@ -90,11 +88,24 @@ var STYLE = [
 	'.ws-btn.ws-primary.ws-level-danger { background: var(--ws-danger); border-color: var(--ws-danger); }',
 	'.ws-btn.ws-primary.ws-level-info { background: var(--ws-info); border-color: var(--ws-info); }',
 	'.ws-btn.weak { border-style: dashed; color: var(--ws-muted); }',
+	'.ws-more { background: var(--ws-surface); border: 1px solid var(--ws-line); border-radius: 12px; padding: 0; box-shadow: 0 6px 18px rgba(18, 32, 52, .04); overflow: hidden; }',
+	'.ws-more summary { cursor: pointer; list-style: none; padding: 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 12px; }',
+	'.ws-more summary::-webkit-details-marker { display: none; }',
+	'.ws-more summary:after { content: "展开"; color: var(--ws-muted); font-size: 12px; font-weight: 650; }',
+	'.ws-more[open] summary:after { content: "收起"; }',
+	'.ws-more-body { border-top: 1px solid var(--ws-line); padding: 14px; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 16px; }',
+	'.ws-more-panel h3 { margin: 0 0 10px; font-size: 15px; }',
+	'.ws-detail-rows { display: grid; gap: 8px; }',
+	'.ws-detail-row { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; align-items: start; padding-bottom: 8px; border-bottom: 1px solid var(--ws-line); }',
+	'.ws-detail-row:last-child { border-bottom: 0; padding-bottom: 0; }',
+	'.ws-detail-label { color: var(--ws-muted); font-size: 12px; }',
+	'.ws-detail-value { font-weight: 650; overflow-wrap: anywhere; }',
+	'.ws-detail-note { color: var(--ws-muted); font-size: 12px; margin-top: 2px; line-height: 1.35; }',
 	'.ws-reason-list { margin: 0; padding-left: 18px; display: grid; gap: 7px; line-height: 1.5; }',
 	'.ws-diagnostics-link { margin-top: 12px; }',
 	'.ws-diagnostics-link a { color: var(--ws-info); font-weight: 650; }',
-	'@media (max-width: 880px) { .ws-hero-inner, .ws-action-layout { grid-template-columns: minmax(0, 1fr); } .ws-info-grid, .ws-timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ws-path { grid-template-columns: minmax(0, 1fr); } .ws-path-arrow { min-height: 10px; } }',
-	'@media (max-width: 560px) { .wan-switch-title { align-items: flex-start; } .wan-switch-title h2 { font-size: 21px; } .ws-hero h1 { font-size: 25px; } .ws-meta-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; } .ws-meta-row strong { text-align: left; } .ws-info-grid, .ws-timeline { grid-template-columns: minmax(0, 1fr); } .ws-btn { width: 100%; } .ws-toolbar { width: 100%; } }'
+	'@media (max-width: 980px) { .ws-overview, .ws-secondary-grid, .ws-more-body { grid-template-columns: minmax(0, 1fr); } .ws-status-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ws-path { grid-template-columns: minmax(0, 1fr); } .ws-path-arrow { min-height: 10px; } }',
+	'@media (max-width: 560px) { .wan-switch-title { align-items: flex-start; margin-bottom: 12px; } .wan-switch-title h2 { font-size: 21px; } .wan-switch-title p { display: none; } .ws-hero, .ws-card { padding: 14px; } .ws-hero h1 { font-size: 24px; } .ws-status-facts { grid-template-columns: minmax(0, 1fr); gap: 8px; } .ws-fact { padding: 8px 10px; } .ws-fact-value { font-size: 15px; } .ws-timeline { grid-template-columns: minmax(0, 1fr); } .ws-detail-row { grid-template-columns: minmax(0, 1fr); gap: 3px; } .ws-btn { width: 100%; } .ws-toolbar { width: 100%; } }'
 ].join('\n');
 
 function statusUrl() {
@@ -204,21 +215,30 @@ function primaryAction(status) {
 	};
 }
 
+function fact(label, value, note) {
+	return E('div', { 'class': 'ws-fact' }, [
+		E('div', { 'class': 'ws-fact-label' }, label),
+		E('div', { 'class': 'ws-fact-value' }, value),
+		note ? E('div', { 'class': 'ws-fact-note' }, note) : ''
+	]);
+}
+
 function renderHero(status) {
 	var level = riskLevel(status);
-	var subtitle = text(status.current_exit, '未知出口') + ' · ' + policyLabel(status.default_rule) + ' · ' + text(status.next_action, '暂无下一步动作');
+	var subtitle = text(status.current_exit, '未知出口') + ' · ' + policyLabel(status.default_rule);
 
 	return E('section', { 'class': 'ws-hero ws-level-' + level, 'aria-live': 'polite' }, [
 		E('div', { 'class': 'ws-hero-inner' }, [
 			E('div', {}, [
 				pill(text(status.risk_label, '状态信息'), level),
 				E('h1', {}, text(status.headline, '网络状态未知')),
-				E('div', { 'class': 'ws-hero-summary' }, subtitle)
+				E('div', { 'class': 'ws-hero-summary' }, subtitle),
+				E('div', { 'class': 'ws-refresh-line' }, '最后刷新 ' + text(status.now, '-'))
 			]),
-			E('div', { 'class': 'ws-hero-meta' }, [
-				E('div', { 'class': 'ws-meta-row' }, [ E('span', {}, '当前时间'), E('strong', {}, text(status.now, '-')) ]),
-				E('div', { 'class': 'ws-meta-row' }, [ E('span', {}, '最后刷新'), E('strong', {}, text(status.now, '-')) ]),
-				E('div', { 'class': 'ws-meta-row' }, [ E('span', {}, '诊断摘要'), E('strong', {}, text(status.diagnostics_summary, '-')) ])
+			E('div', { 'class': 'ws-status-facts' }, [
+				fact('实际出口', text(status.current_exit, '未知'), text(status.exit_ip, status.exit_note)),
+				fact('当前策略', policyLabel(status.default_rule), text(status.protection_label, '-')),
+				fact('下一步', text(status.next_action, '-'), text(status.window_label, '-'))
 			])
 		])
 	]);
@@ -251,7 +271,6 @@ function renderPath(status) {
 
 	return E('section', { 'class': 'ws-card' }, [
 		E('h3', {}, '网络路径'),
-		E('p', { 'class': 'ws-card-subtle' }, '看当前流量从校园 WAN、mwan3 策略到 F50 之间如何选择。'),
 		E('div', { 'class': 'ws-path' }, [
 			renderPathNode('校园 WAN', campus.online !== undefined ? campus.online : status.wan_online, campus.ip || status.wan_ip, campus.role),
 			E('div', { 'class': 'ws-path-arrow', 'aria-hidden': 'true' }, '→'),
@@ -262,27 +281,6 @@ function renderPath(status) {
 			]),
 			E('div', { 'class': 'ws-path-arrow', 'aria-hidden': 'true' }, '→'),
 			renderPathNode('F50 USB', f50.online !== undefined ? f50.online : status.f50_online, f50.ip || status.f50_ip, f50.role)
-		])
-	]);
-}
-
-function infoCard(label, value, note, level) {
-	return E('div', { 'class': 'ws-info-card' }, [
-		E('div', { 'class': 'ws-info-label' }, label),
-		E('div', { 'class': 'ws-info-value' }, value),
-		note ? E('div', { 'class': 'ws-info-note' }, note) : '',
-		level ? E('div', { 'class': 'ws-info-note' }, [ pill(level.label, level.level) ]) : ''
-	]);
-}
-
-function renderInfoCards(status) {
-	return E('section', { 'class': 'ws-card' }, [
-		E('h3', {}, '关键状态'),
-		E('div', { 'class': 'ws-info-grid' }, [
-			infoCard('当前出口', text(status.exit_kind, status.current_exit), text(status.exit_ip, status.exit_note), { label: text(status.current_exit, '未知'), level: riskLevel(status) }),
-			infoCard('今晚断网', yesNo(status.outage_tonight), text(status.window_label, '-'), { label: status.outage_window ? '保护窗口中' : '未进入窗口', level: status.outage_window ? 'info' : 'neutral' }),
-			infoCard('保护状态', text(status.protection_label, '-'), text(status.exit_note, '-'), { label: text(status.risk_label, '-'), level: riskLevel(status) }),
-			infoCard('下一次自动动作', text(status.next_action, '-'), '自动脚本由 cron 每 10 分钟检查。', null)
 		])
 	]);
 }
@@ -299,14 +297,14 @@ function renderTimeline(status) {
 
 	return E('section', { 'class': 'ws-card' }, [
 		E('h3', {}, '自动策略时间轴'),
+		E('p', { 'class': 'ws-card-subtle' }, text(status.window_label, '-') + ' · 明天' + (status.tomorrow_workday === 'yes' ? '是工作日' : '不是工作日或未知')),
 		E('div', { 'class': 'ws-timeline' }, items.map(function(item) {
 			return E('div', { 'class': 'ws-step ws-step-' + text(item.state, 'idle') }, [
 				E('div', { 'class': 'ws-step-label' }, text(item.label, '-')),
 				E('div', { 'class': 'ws-step-value' }, text(item.value, '-')),
 				E('div', { 'class': 'ws-step-text' }, text(item.text, '-'))
 			]);
-		})),
-		E('p', { 'class': 'ws-card-subtle', 'style': 'margin-top:12px;margin-bottom:0' }, '今天：' + text(status.today, '-') + ' · 明天：' + text(status.tomorrow, '-') + ' · 明天' + (status.tomorrow_workday === 'yes' ? '是工作日' : '不是工作日或未知'))
+		}))
 	]);
 }
 
@@ -388,7 +386,7 @@ function renderActions(status) {
 				actionButton(primary.target, primary.label, true, primary.level, primary.weak)
 			]),
 			E('div', {}, [
-				E('div', { 'class': 'ws-action-note', 'style': 'margin-bottom:8px' }, status.f50_online ? 'F50 在线，可随时切换。' : 'F50 离线，插入并获取 IP 后会接管；也可以先预备策略。'),
+				E('div', { 'class': 'ws-action-note', 'style': 'margin-bottom:8px' }, '其他操作'),
 				E('div', { 'class': 'ws-button-row' }, targets.filter(function(item) {
 					return item.target !== primary.target;
 				}).map(function(item) {
@@ -399,30 +397,59 @@ function renderActions(status) {
 	]);
 }
 
-function renderReasons(status) {
+function detailRow(label, value, note) {
+	return E('div', { 'class': 'ws-detail-row' }, [
+		E('div', { 'class': 'ws-detail-label' }, label),
+		E('div', {}, [
+			E('div', { 'class': 'ws-detail-value' }, value),
+			note ? E('div', { 'class': 'ws-detail-note' }, note) : ''
+		])
+	]);
+}
+
+function renderMoreDetails(status) {
 	var lines = status.reason_lines || [];
 	if (!lines.length)
 		lines = [ '状态接口还没有返回判断链。' ];
 
-	return E('section', { 'class': 'ws-card' }, [
-		E('h3', {}, '为什么这样判断？'),
-		E('ol', { 'class': 'ws-reason-list' }, lines.map(function(line) {
-			return E('li', {}, line);
-		})),
-		E('div', { 'class': 'ws-diagnostics-link' }, [
-			E('a', { 'href': diagnosticsUrl() }, '打开诊断页')
+	return E('details', { 'class': 'ws-more' }, [
+		E('summary', {}, [
+			E('span', {}, '更多状态与判断依据')
+		]),
+		E('div', { 'class': 'ws-more-body' }, [
+			E('div', { 'class': 'ws-more-panel' }, [
+				E('h3', {}, '状态细节'),
+				E('div', { 'class': 'ws-detail-rows' }, [
+					detailRow('今晚断网', yesNo(status.outage_tonight), text(status.window_label, '-')),
+					detailRow('保护状态', text(status.protection_label, '-'), text(status.exit_note, '-')),
+					detailRow('WAN / F50', (status.wan_online ? 'WAN 在线' : 'WAN 离线') + ' · ' + (status.f50_online ? 'F50 在线' : 'F50 离线'), text(status.wan_ip, '-') + ' / ' + text(status.f50_ip, '-')),
+					detailRow('诊断摘要', text(status.diagnostics_summary, '-'), null)
+				])
+			]),
+			E('div', { 'class': 'ws-more-panel' }, [
+				E('h3', {}, '判断依据'),
+				E('ol', { 'class': 'ws-reason-list' }, lines.map(function(line) {
+					return E('li', {}, line);
+				})),
+				E('div', { 'class': 'ws-diagnostics-link' }, [
+					E('a', { 'href': diagnosticsUrl() }, '打开诊断页')
+				])
+			])
 		])
 	]);
 }
 
 function renderDashboard(status) {
 	return E('div', { 'class': 'ws-grid' }, [
-		renderHero(status),
+		E('div', { 'class': 'ws-overview' }, [
+			renderHero(status),
+			renderActions(status)
+		]),
 		renderPath(status),
-		renderTimeline(status),
-		renderActions(status),
-		renderInfoCards(status),
-		renderReasons(status)
+		E('div', { 'class': 'ws-secondary-grid' }, [
+			renderTimeline(status),
+			renderMoreDetails(status)
+		])
 	]);
 }
 
